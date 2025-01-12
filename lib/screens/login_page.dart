@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../utils/api_service.dart';
-import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -11,110 +9,69 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   bool _isLoading = false;
 
   Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+    final email = _emailController.text;
+    final password = _passwordController.text;
 
-      final email = _emailController.text;
-      final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
 
-      final response = await ApiService.login(email, password);
+    setState(() {
+      _isLoading = true;
+    });
 
-      setState(() {
-        _isLoading = false;
-      });
+    final response = await ApiService.login(email, password);
 
-      if (response['success']) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'])),
-        );
-      }
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (response['success']) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response['message'])),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Form(
-            key: _formKey,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Welcome to Medical Care',
-                  style: TextStyle(
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.lightBlue.shade700,
-                  ),
-                  textAlign: TextAlign.center,
+                  'Login',
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 20.0),
-                Image.asset(
-                  'assets/medical_logo.png', // 의료 로고 이미지
-                  height: 150.0,
-                ),
-                SizedBox(height: 20.0),
-                TextFormField(
+                TextField(
                   controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email, color: Colors.lightBlue),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    return null;
-                  },
+                  decoration: InputDecoration(labelText: 'Email'),
                 ),
-                SizedBox(height: 15.0),
-                TextFormField(
+                SizedBox(height: 10.0),
+                TextField(
                   controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock, color: Colors.lightBlue),
-                  ),
+                  decoration: InputDecoration(labelText: 'Password'),
                   obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
                 ),
                 SizedBox(height: 20.0),
                 _isLoading
-                    ? Center(child: CircularProgressIndicator())
+                    ? CircularProgressIndicator()
                     : ElevatedButton(
                   onPressed: _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.lightBlue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  child: Text(
-                    'Login',
-                    style: TextStyle(color: Colors.white, fontSize: 16.0),
-                  ),
+                  child: Text('Login'),
                 ),
               ],
             ),
@@ -124,3 +81,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+

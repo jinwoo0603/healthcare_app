@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/login_page.dart';
+import 'screens/home_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -9,13 +10,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Medical Care',
+      title: 'Medical Care App',
       theme: ThemeData(
         primarySwatch: Colors.lightBlue,
-        scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'Arial',
       ),
-      home: LoginPage(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => LoginPage(),  // 초기 화면: 로그인 페이지
+        '/home': (context) => HomePage(),  // 로그인 성공 후: 홈 페이지
+      },
     );
   }
 }
