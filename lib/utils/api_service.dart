@@ -35,6 +35,54 @@ class ApiService {
       };
     }
   }
+  
+  /// 회원가입 API
+  static Future<Map<String, dynamic>> registerUser({
+    required String email,
+    required String password,
+    required String name,
+    required double height,
+    required String birthdate,
+    required String gender,
+    required int smokingHistory,
+    required String socialId,
+  }) async {
+    final url = Uri.parse('$_baseUrl/auth/register/user');
+    try {
+      final response = await _client.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          'name': name,
+          'height': height,
+          'birthdate': birthdate,
+          'gender': gender,
+          'smoking_history': smokingHistory,
+          'social_id': socialId,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': 'User registered successfully',
+        };
+      } else {
+        final data = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Registration failed',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'An error occurred: $e',
+      };
+    }
+  }
 
   /// History API
   static Future<Map<String, dynamic>> createHistory({

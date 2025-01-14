@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/api_service.dart';
-import 'result.dart';
+import 'result_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
