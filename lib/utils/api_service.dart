@@ -123,4 +123,35 @@ class ApiService {
       };
     }
   }
+
+  /// 최근 기록 및 평균값 가져오기
+  static Future<Map<String, dynamic>> viewHistorySummary() async {
+    final url = Uri.parse('$_baseUrl/history/summary');
+    try {
+      final response = await _client.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'recent_record': data['recent_record'],
+          'averages': data['averages'],
+        };
+      } else {
+        final data = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Failed to fetch history summary',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'An error occurred: $e',
+      };
+    }
+  }
 }
