@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../utils/api_service.dart';
 import 'result_page.dart';
 
@@ -13,6 +14,7 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _bloodPressureController = TextEditingController();
   Map<String, dynamic>? _recentRecord;
   Map<String, dynamic>? _averages;
+  Map<String, List<dynamic>>? _dataArrays;
   bool _isLoading = true;
 
   @override
@@ -88,7 +90,9 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text('Home'),
       ),
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -96,16 +100,24 @@ class _HomePageState extends State<HomePage> {
             children: [
               _buildInputSection(),
               SizedBox(height: 20.0),
-              _isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildRecentRecordSection(),
-                  SizedBox(height: 20.0),
-                  _buildAveragesSection(),
-                ],
-              ),
+              _buildRecentAndAverages(),
+              if (_dataArrays != null) ...[
+                _buildHistoryChart(
+                  data: _dataArrays!['blood_glucose']!.cast<double>(),
+                  label: 'Blood Glucose Over Time',
+                  color: Colors.red,
+                ),
+                _buildHistoryChart(
+                  data: _dataArrays!['blood_pressure']!.cast<double>(),
+                  label: 'Blood Pressure Over Time',
+                  color: Colors.blue,
+                ),
+                _buildHistoryChart(
+                  data: _dataArrays!['weight']!.cast<double>(),
+                  label: 'Weight Over Time',
+                  color: Colors.green,
+                ),
+              ],
             ],
           ),
         ),
@@ -146,8 +158,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// 최근 기록 섹션
-  Widget _buildRecentRecordSection() {
+  /// 최근 기록 및 평균값 섹션
+  Widget _buildRecentAndAverages() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -157,42 +169,77 @@ class _HomePageState extends State<HomePage> {
         ),
         SizedBox(height: 10.0),
         _recentRecord != null
-            ? Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Blood Glucose: ${_recentRecord!['blood_glucose']} mg/dL'),
-            Text('Blood Pressure: ${_recentRecord!['blood_pressure']} mmHg'),
-            Text('Weight: ${_recentRecord!['weight']} kg'),
-            Text('Timestamp: ${_recentRecord!['timestamp']}'),
-          ],
+            ? Text(
+          'Blood Glucose: ${_recentRecord!['blood_glucose']}, '
+              'Blood Pressure: ${_recentRecord!['blood_pressure']}, '
+              'Weight: ${_recentRecord!['weight']}',
         )
             : Text('No recent record available.'),
-      ],
-    );
-  }
-
-  /// 평균 값 섹션
-  Widget _buildAveragesSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+        SizedBox(height: 20.0),
         Text(
           'Averages',
           style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 10.0),
         _averages != null
-            ? Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Average Blood Glucose: ${_averages!['avg_blood_glucose'] ?? 'N/A'} mg/dL'),
-            Text('Average Blood Pressure: ${_averages!['avg_blood_pressure'] ?? 'N/A'} mmHg'),
-            Text('Average Weight: ${_averages!['avg_weight'] ?? 'N/A'} kg'),
-          ],
+            ? Text(
+          'Average Blood Glucose: ${_averages!['avg_blood_glucose']}, '
+              'Average Blood Pressure: ${_averages!['avg_blood_pressure']}, '
+              'Average Weight: ${_averages!['avg_weight']}',
         )
             : Text('No averages available.'),
       ],
     );
   }
 
+  Widget _buildHistoryChart({
+    required List<double> data,
+    required String label,
+    required Color color,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10.0),
+            SizedBox(
+              height: 200.0,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(show: false),
+                  titlesData: FlTitlesData(show: false),
+                  borderData: FlBorderData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: data.asMap().entries.map((e) {
+                        return FlSpot(e.key.toDouble(), e.value);
+                      }).toList(),
+                      isCurved: true,
+                      gradient: LinearGradient(
+                        colors: [
+                          color.withValues(alpha: (0.8 * 255)),
+                          color,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                      dotData: FlDotData(show: false),
+                      belowBarData: BarAreaData(show: false),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

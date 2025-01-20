@@ -126,7 +126,7 @@ class ApiService {
 
   /// 최근 기록 및 평균값 가져오기
   static Future<Map<String, dynamic>> viewHistorySummary() async {
-    final url = Uri.parse('$_baseUrl/history/summary');
+    final url = Uri.parse('$_baseUrl/history');
     try {
       final response = await _client.get(
         url,
@@ -139,12 +139,13 @@ class ApiService {
           'success': true,
           'recent_record': data['recent_record'],
           'averages': data['averages'],
+          'data_arrays': data['data_arrays'], // 전체 데이터 추가
         };
       } else {
         final data = jsonDecode(response.body);
         return {
           'success': false,
-          'message': data['message'] ?? 'Failed to fetch history summary',
+          'message': data['message'] ?? 'Failed to fetch history',
         };
       }
     } catch (e) {
